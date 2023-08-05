@@ -35,7 +35,7 @@
           }"
         />
       </div>
-      <img src="" />
+      <img :src="currentData.image" />
       <div class="question">{{ currentData.question }}</div>
 
       <div class="answers">
@@ -116,21 +116,26 @@ export default {
         ],
       });
       const result = JSON.parse(completion.data.choices[0].message.content);
-      console.log(result);
 
-      // const result = JSON.parse(
-      //   '[\n  {\n    "id": 1,\n    "question": "연인과의 야외 데이트 중인 우리, 어떤 옷을 선택하고 싶어?",\n    "concept": "A couple enjoying a romantic picnic in a beautiful park",\n    "answers": [\n      {\n        "text": "편안하고 자유로운 옷이지만 허름하면서 어쩌고 저쩌고인 옷",\n        "value": "P"\n      },\n      {\n        "text": "세련되고 고급스러운 옷",\n        "value": "J"\n      }\n    ]\n  },\n  {\n    "id": 2,\n    "question": "우리가 함께하는 영화 관람 시간에 어떤 장르의 영화를 보고 싶어?",\n    "concept": "Hands holding popcorn while watching a captivating movie",\n    "answers": [\n      {\n        "text": "로맨틱한 멜로드라마",\n        "value": "F"\n      },\n      {\n        "text": "스릴 넘치는 액션영화",\n        "value": "T"\n      }\n    ]\n  },\n  {\n    "id": 3,\n    "question": "함께 노래방에 간 우리, 어떤 노래를 부르고 싶어?",\n    "concept": "Singing and dancing with joy in a colorful karaoke room",\n    "answers": [\n      {\n        "text": "사랑스러운 발라드",\n        "value": "F"\n      },\n      {\n        "text": "신나는 팝송",\n        "value": "E"\n      }\n    ]\n  },\n  {\n    "id": 4,\n    "question": "우리가 데이트 중인 카페에서, 어떤 음료를 주문하고 싶어?",\n    "concept": "Holding hands while enjoying a cozy coffee date",\n    "answers": [\n      {\n        "text": "따뜻한 아메리카노",\n        "value": "S"\n      },\n      {\n        "text": "상큼한 과일 스무디",\n        "value": "N"\n      }\n    ]\n  }\n]'
-      // );
+      for (let i = 0; i < result.length; i++) {
+        const image = await openai.createImage({
+          prompt: `${result[i].concep}`,
+          size: "256x256",
+        });
+
+        console.log(image.data.data[0].url);
+
+        result[i].image = image.data.data[0].url;
+      }
 
       questionnaire.value = result;
+
       currentData.value = questionnaire.value[0];
       if (currentData.value) {
         isLoading.value = true;
         clearInterval(loadingInterval);
       }
     }
-
-    let page = 0;
 
     const result = {
       E: 0,
@@ -151,6 +156,7 @@ export default {
     }
 
     const description = ref("");
+    let page = 0;
 
     async function selectOption(type) {
       type = type[0];
@@ -184,7 +190,7 @@ export default {
           { role: "system", content: "You are a helpful assistant." },
           {
             role: "user",
-            content: `${type}는 사랑에 빠지면 어떤 행동을 하고 어떤 심리를 가지는지 알려줘? 답변은 오직 JSON 형식으로만 답해줘. 다음과 같이 만들어줘. [type: 'ISTJ', answer: respon ]`,
+            content: `${type}는 사랑에 빠지면 어떤 행동을 하고 어떤 심리를 가지는지 알려줘? 밝고 쾌활하게 답변해줘. 답변은 오직 JSON 형식으로만 답해줘. 다음과 같이 만들어줘. [type: 'ISTJ', answer: respon ]`,
           },
         ],
       });
